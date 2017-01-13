@@ -34,30 +34,10 @@
 #include "efiapi.h"
 #include "efierr.h"
 #include "efiprot.h"
-
+#include "nyan.h"
+#include "nyanbutt1.h"
 
 static EFI_GUID GraphicsOutputProtocolGUID = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
-
-
-void printInt(SIMPLE_TEXT_OUTPUT_INTERFACE *conOut, int value) {
-	CHAR16 out[32];
-	CHAR16 *ptr = out;
-	if (value == 0) {
-		conOut->OutputString(conOut, L"0");
-		return;
-	}
-
-	ptr += 31;
-	*--ptr = 0;
-	int tmp = value;// >= 0 ? value : -value; 
-	
-	while (tmp) {
-		*--ptr = '0' + tmp % 10;
-		tmp /= 10;
-	}
-	if (value < 0) *--ptr = '-';
-	conOut->OutputString(conOut, ptr);
-}
 
 /**
  * efi_main - The entry point for the EFI application
@@ -65,18 +45,16 @@ void printInt(SIMPLE_TEXT_OUTPUT_INTERFACE *conOut, int value) {
  * @SystemTable: EFI system table
  */
 EFI_STATUS
-efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable)
-{
+efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
 	EFI_BOOT_SERVICES *bs = systemTable->BootServices;
+	EFI_STATUS status;
 	EFI_GRAPHICS_OUTPUT_PROTOCOL *graphicsProtocol;
-
 	SIMPLE_TEXT_OUTPUT_INTERFACE *conOut = systemTable->ConOut;
 	EFI_EVENT event = systemTable->ConIn->WaitForKey;
-	UINTN index;
+	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+	UINTN SizeOfInfo, index, sWidth, sHeight;
 
-	int i, modeCount;
-
-	EFI_STATUS status = bs->LocateProtocol(&GraphicsOutputProtocolGUID, NULL, 
+	status = bs->LocateProtocol(&GraphicsOutputProtocolGUID, NULL, 
 		(void**)&graphicsProtocol);
 
 	if (EFI_ERROR(status) || graphicsProtocol == NULL) {
@@ -91,56 +69,74 @@ efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable)
 		return status;
 	}
 
-	conOut->OutputString(conOut, L"Current mode: ");
-	printInt(conOut, graphicsProtocol->Mode->Mode);
-	conOut->OutputString(conOut, L"\r\n");
+	EFI_GRAPHICS_OUTPUT_BLT_PIXEL p;
+	p.Red = 15;
+	p.Green = 77;
+	p.Blue = 143;
+	graphicsProtocol->QueryMode(graphicsProtocol, graphicsProtocol->Mode->Mode, &SizeOfInfo, &info);
+	sWidth = info->HorizontalResolution;
+	sHeight = info->VerticalResolution;	
+	status = graphicsProtocol->Blt(graphicsProtocol, &p, EfiBltVideoFill, 0, 0, 0, 0, sWidth, sHeight, 0);
 
-	modeCount = graphicsProtocol->Mode->MaxMode;
-	for (i = 0; i < modeCount; i++) {
-		conOut->OutputString(conOut, L"\r\n");
-		printInt(conOut, i);
-		conOut->OutputString(conOut, L": ");
-		EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
-		UINTN SizeOfInfo;
-		status = graphicsProtocol->QueryMode(graphicsProtocol, i, &SizeOfInfo, &info);
+	/* disable efi watchdog timer */
+	bs->SetWatchdogTimer(0, 0, 0, NULL);
 
-		if (EFI_ERROR(status)) {
-			conOut->OutputString(conOut, L" Failure to query mode: ");
-			printInt(conOut, status);
-			continue;
+	/* experimental disk loading */
+	
+	/* ------------ end -------- */
+	
+	/* experimental graphics draw */
+
+        // nyan
+        int SCALE = 6;
+	int i, j;
+	int xtopleft = sWidth/2 - 35*(SCALE/2), ytopleft = sHeight/2 - 20*(SCALE/2);
+	int offset = 0;
+	static EFI_GRAPHICS_OUTPUT_BLT_PIXEL rainbow[] = {{17,18,255,0x00},{11,168,255,0x00},{0,0xFF,0xFF,0x00},
+{12,0xFF,74,0x00},{255,174,15,0x00},{255,68,118,0x00}};
+
+	for (i = 10; i < 35; i++) { // x
+		for (j = 0; j < 20; j++) { // y
+			status = graphicsProtocol->Blt(graphicsProtocol,
+			&nyancat[j*35+i], EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
 		}
-		printInt(conOut, info->HorizontalResolution);
-		conOut->OutputString(conOut, L" x ");
-		printInt(conOut, info->VerticalResolution);
-
-		switch(info->PixelFormat) {
-			case PixelRedGreenBlueReserved8BitPerColor:
-				conOut->OutputString(conOut, L" RGB(R)");
-				break;
-			case PixelBlueGreenRedReserved8BitPerColor:
-				conOut->OutputString(conOut, L" BGR(R)");
-				break;
-			case PixelBitMask:
-				conOut->OutputString(conOut, L" BitMask ");
-				printInt(conOut, info->PixelInformation.RedMask);
-				conOut->OutputString(conOut, L"R ");
-				printInt(conOut, info->PixelInformation.GreenMask);
-				conOut->OutputString(conOut, L"G ");
-				printInt(conOut, info->PixelInformation.BlueMask);
-				conOut->OutputString(conOut, L"B ");
-				printInt(conOut, info->PixelInformation.ReservedMask);
-				conOut->OutputString(conOut, L"Reserved ");
-				break;
-			case PixelBltOnly:
-				conOut->OutputString(conOut, L" (blt only)");
-				break;
-			default:
-				conOut->OutputString(conOut, L" (Invalid pixel format)");
-				break;
-		}
-		conOut->OutputString(conOut, L" Pixel per scanline: ");
-		printInt(conOut, info->PixelsPerScanLine);
 	}
+
+while (1) {
+	// clear old
+	status = graphicsProtocol->Blt(graphicsProtocol, &p, EfiBltVideoFill, 0, 0, 0, ytopleft, xtopleft+10*SCALE, SCALE*20, 0);
+        // rainbow
+	for (i = 0; i < xtopleft+(7*SCALE); i++) { // x
+		for (j = 0; j < 6; j++) { // y
+			status = graphicsProtocol->Blt(graphicsProtocol,
+			&rainbow[j], EfiBltVideoFill, 0, 0, i, ytopleft+j*SCALE*3+offset*SCALE, SCALE, SCALE*3, 0);
+		}
+		if (i % (9*SCALE) == 0) {
+			offset = !offset;
+		}
+	}
+
+	if (offset) {
+		for (i = 0; i < 10; i++) { // x
+			for (j = 0; j < 20; j++) { // y
+				if (nyancat[j*35+i].Red != p.Red && nyancat[j*35+i].Green != p.Green && nyancat[j*35+i].Blue != p.Blue)
+				status = graphicsProtocol->Blt(graphicsProtocol,
+				&nyancat[j*35+i], EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
+			}
+		}
+	} else {
+		for (i = 0; i < 10; i++) { // x
+			for (j = 0; j < 20; j++) { // y
+				if (nyanbutt1[j*10+i].Red != p.Red && nyanbutt1[j*10+i].Green != p.Green && nyanbutt1[j*10+i].Blue != p.Blue)
+				status = graphicsProtocol->Blt(graphicsProtocol,
+				&nyanbutt1[j*10+i], EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
+			}
+		}
+	}
+	bs->Stall(3000000);
+}
+	
+	/* ------------ end -------- */
 
 	bs->WaitForEvent(1, &event, &index);
 	return EFI_SUCCESS;

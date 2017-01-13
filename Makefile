@@ -1,6 +1,6 @@
 #
 # Copyright (c) 2011, Intel Corporation
-# Modified by :Puck Meerburg
+# Modified by :Puck Meerburg and ohnx
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 LANG="C"
 
 
+QEMU=qemu-system-x86_64
 EXAMPLES=nyanload.efi
 COMMON = glue/$(ARCH)/relocation_func.o glue/$(ARCH)/start_func.o
 
@@ -75,12 +76,23 @@ LDFLAGS=-T glue/$(ARCH)/elf_efi.lds -Bsymbolic -shared -nostdlib -znocombreloc
 all: $(EXAMPLES)
 
 nyanload.so: $(COMMON) nyanload.o
+nyanload.o: nyan.h nyanbutt1.h
+
+nyan.h: resources/nyan.pbm nyan-gen
+	./nyan-gen resources/nyan.pbm nyan.h nyancat
+
+nyanbutt1.h: resources/butt1.pbm nyan-gen
+	./nyan-gen resources/butt1.pbm nyanbutt1.h nyanbutt1
+
+nyan-gen: nyan-gen.c
+	gcc nyan-gen.c -o nyan-gen
+
 
 clean:
-	rm -f $(EXAMPLES) *.so $(COMMON) example.o gfx_example.o disk_example.o
+	rm -f $(EXAMPLES) *.so $(COMMON) *.o nyan.h nyanbutt1.h nyan-gen
 
 run:
-	cp *.efi hd/
-	./qemu-system-x86_64 -bios OVMF.fd -hda fat:hd -L bios/
+	cp nyanload.efi hd/EFI/BOOT/BOOTX64.EFI
+	$(QEMU) -bios OVMF.fd -hda fat:hd -L bios/
 
 go: all run
