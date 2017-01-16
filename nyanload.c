@@ -133,7 +133,12 @@ while (1) {
 			}
 		}
 	}
-	bs->Stall(3000000);
+	bs->Stall(1500000);
+	status = kSystemTable->ConIn->ReadKeyStroke(kSystemTable->ConIn, &key);
+
+	if (status != EFI_SUCCESS)
+		continue;
+	else break;
 }
 	
 	/* ------------ end -------- */
