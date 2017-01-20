@@ -1,2 +1,5 @@
 bios/
 OVMF.fd
+*.o
+*.so
+

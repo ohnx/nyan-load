@@ -50,9 +50,10 @@ efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
 	EFI_STATUS status;
 	EFI_GRAPHICS_OUTPUT_PROTOCOL *graphicsProtocol;
 	SIMPLE_TEXT_OUTPUT_INTERFACE *conOut = systemTable->ConOut;
-	EFI_EVENT event = systemTable->ConIn->WaitForKey;
 	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
-	UINTN SizeOfInfo, index, sWidth, sHeight;
+	UINTN SizeOfInfo, sWidth, sHeight;
+	static EFI_INPUT_KEY keys[10]; //up  , up  , down, down, left,right, left,right, b, a
+	int keysPos = 0;
 
 	status = bs->LocateProtocol(&GraphicsOutputProtocolGUID, NULL, 
 		(void**)&graphicsProtocol);
@@ -133,16 +134,58 @@ while (1) {
 			}
 		}
 	}
-	bs->Stall(1500000);
-	status = kSystemTable->ConIn->ReadKeyStroke(kSystemTable->ConIn, &key);
+	status = systemTable->ConIn->ReadKeyStroke(systemTable->ConIn, &keys[keysPos]);
 
-	if (status != EFI_SUCCESS)
-		continue;
-	else break;
+	if (status == EFI_SUCCESS) {
+		// check if user has correctly entered konami code!
+		if (keys[keysPos].UnicodeChar == 'a') {
+		for (i = 1; i < 11; i++) {
+			switch(i-1) {
+			// up, up
+			case 0:
+			case 1:
+			if (keys[(i+keysPos)%10].ScanCode != 0x01) goto sad;
+			break;
+			// down, down
+			case 2:
+			case 3:
+			if (keys[(i+keysPos)%10].ScanCode != 0x02) goto sad;
+			break;
+			// left (x2)
+			case 4:
+			case 6:
+			if (keys[(i+keysPos)%10].ScanCode != 0x04) goto sad;
+			break;
+			// right (x2)
+			case 5:
+			case 7:
+			if (keys[(i+keysPos)%10].ScanCode != 0x03) goto sad;
+			break;
+			// a
+			case 9:
+			if (keys[(i+keysPos)%10].UnicodeChar != 'a') goto sad;
+			break;
+			// b
+			case 8:
+			if (keys[(i+keysPos)%10].UnicodeChar != 'b') goto sad;
+			break;
+			}
+
+		}
+		break;
+		}
+		sad:
+		keysPos++;
+		keysPos = keysPos % 10;
+
+	}
+	bs->Stall(500000);
 }
 	
+	/* re-enable efi watchdog timer - because you're supposed to! :o */
+	bs->SetWatchdogTimer(1337, 0, 0, NULL);
+
 	/* ------------ end -------- */
 
-	bs->WaitForEvent(1, &event, &index);
 	return EFI_SUCCESS;
 }
