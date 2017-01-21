@@ -95,4 +95,8 @@ run:
 	cp nyanload.efi hd/EFI/BOOT/BOOTX64.EFI
 	$(QEMU) -bios OVMF.fd -hda fat:hd -L bios/
 
+commit: clean
+	git add .
+	git commit
+
 go: all run

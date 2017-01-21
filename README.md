@@ -10,7 +10,7 @@ the rainbow and cat tail moves as of right now, and work is being done to add st
 
 ![image](https://cloud.githubusercontent.com/assets/6683648/21967660/3929e4be-db59-11e6-93ff-28dc47e85759.png)
 
-you can't exit the bootloader without rebooting your computer, but who cares! :smile:
+to exit the bootloader (if you can call it that), enter the konami code.
 
 ## installing
 
@@ -21,7 +21,6 @@ Alternatively, you can also just try it in a virtual machine (qemu) by running `
 
 ## TODO
 
- - remove the bootloader and OVMF binaries from repo
  - add the stars
  - sound???
- - add some way to exit nyan.
+
