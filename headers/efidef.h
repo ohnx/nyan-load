@@ -132,10 +132,23 @@ typedef UINT64          EFI_PHYSICAL_ADDRESS;
 typedef UINT64          EFI_VIRTUAL_ADDRESS;
 
 typedef enum {
-    AllocateAnyPages,
-    AllocateMaxAddress,
-    AllocateAddress,
-    MaxAllocateType
+  ///
+  /// Allocate any available range of pages that satisfies the request.
+  ///
+  AllocateAnyPages,
+  ///
+  /// Allocate any available range of pages whose uppermost address is less than
+  /// or equal to a specified maximum address.
+  ///
+  AllocateMaxAddress,
+  ///
+  /// Allocate pages at a specified address.
+  ///
+  AllocateAddress,
+  ///
+  /// Maximum enumeration value that may be used for bounds checking.
+  ///
+  MaxAllocateType
 } EFI_ALLOCATE_TYPE;
 
 //Preseve the attr on any range supplied.
