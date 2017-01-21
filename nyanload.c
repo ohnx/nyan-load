@@ -44,8 +44,7 @@ static EFI_GUID GraphicsOutputProtocolGUID = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
  * @image: firmware-allocated handle that identifies the image
  * @SystemTable: EFI system table
  */
-EFI_STATUS
-efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
+EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
 	EFI_BOOT_SERVICES *bs = systemTable->BootServices;
 	EFI_STATUS status;
 	EFI_GRAPHICS_OUTPUT_PROTOCOL *graphicsProtocol;
@@ -120,17 +119,19 @@ while (1) {
 	if (offset) {
 		for (i = 0; i < 10; i++) { // x
 			for (j = 0; j < 20; j++) { // y
-				if (nyancat[j*35+i].Red != p.Red && nyancat[j*35+i].Green != p.Green && nyancat[j*35+i].Blue != p.Blue)
-				status = graphicsProtocol->Blt(graphicsProtocol,
-				&nyancat[j*35+i], EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
+				if (nyancat[j*35+i].Red != p.Red && nyancat[j*35+i].Green != p.Green &&
+				    nyancat[j*35+i].Blue != p.Blue)
+					status = graphicsProtocol->Blt(graphicsProtocol, &nyancat[j*35+i],
+						EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
 			}
 		}
 	} else {
 		for (i = 0; i < 10; i++) { // x
 			for (j = 0; j < 20; j++) { // y
-				if (nyanbutt1[j*10+i].Red != p.Red && nyanbutt1[j*10+i].Green != p.Green && nyanbutt1[j*10+i].Blue != p.Blue)
-				status = graphicsProtocol->Blt(graphicsProtocol,
-				&nyanbutt1[j*10+i], EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
+				if (nyanbutt1[j*10+i].Red != p.Red && nyanbutt1[j*10+i].Green != p.Green &&
+				    nyanbutt1[j*10+i].Blue != p.Blue)
+					status = graphicsProtocol->Blt(graphicsProtocol, &nyanbutt1[j*10+i],
+						EfiBltVideoFill, 0, 0, xtopleft+i*SCALE, ytopleft+j*SCALE, SCALE, SCALE, 0);
 			}
 		}
 	}
@@ -139,40 +140,39 @@ while (1) {
 	if (status == EFI_SUCCESS) {
 		// check if user has correctly entered konami code!
 		if (keys[keysPos].UnicodeChar == 'a') {
-		for (i = 1; i < 11; i++) {
-			switch(i-1) {
-			// up, up
-			case 0:
-			case 1:
-			if (keys[(i+keysPos)%10].ScanCode != 0x01) goto sad;
-			break;
-			// down, down
-			case 2:
-			case 3:
-			if (keys[(i+keysPos)%10].ScanCode != 0x02) goto sad;
-			break;
-			// left (x2)
-			case 4:
-			case 6:
-			if (keys[(i+keysPos)%10].ScanCode != 0x04) goto sad;
-			break;
-			// right (x2)
-			case 5:
-			case 7:
-			if (keys[(i+keysPos)%10].ScanCode != 0x03) goto sad;
-			break;
-			// a
-			case 9:
-			if (keys[(i+keysPos)%10].UnicodeChar != 'a') goto sad;
-			break;
-			// b
-			case 8:
-			if (keys[(i+keysPos)%10].UnicodeChar != 'b') goto sad;
-			break;
+			for (i = 1; i < 11; i++) {
+				switch(i-1) {
+				// up, up
+				case 0:
+				case 1:
+					if (keys[(i+keysPos)%10].ScanCode != 0x01) goto sad;
+					break;
+				// down, down
+				case 2:
+				case 3:
+					if (keys[(i+keysPos)%10].ScanCode != 0x02) goto sad;
+					break;
+				// left (x2)
+				case 4:
+				case 6:
+					if (keys[(i+keysPos)%10].ScanCode != 0x04) goto sad;
+					break;
+				// right (x2)
+				case 5:
+				case 7:
+					if (keys[(i+keysPos)%10].ScanCode != 0x03) goto sad;
+					break;
+				// a
+				case 9:
+					if (keys[(i+keysPos)%10].UnicodeChar != 'a') goto sad;
+					break;
+				// b
+				case 8:
+					if (keys[(i+keysPos)%10].UnicodeChar != 'b') goto sad;
+					break;
+				}
 			}
-
-		}
-		break;
+			break;
 		}
 		sad:
 		keysPos++;
@@ -189,3 +189,4 @@ while (1) {
 
 	return EFI_SUCCESS;
 }
+
