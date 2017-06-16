@@ -10,7 +10,7 @@ the rainbow and cat tail moves as of right now, and work is being done to add st
 
 ![image](https://cloud.githubusercontent.com/assets/6683648/21967660/3929e4be-db59-11e6-93ff-28dc47e85759.png)
 
-you can't exit the bootloader without rebooting your computer, but who cares! :smile:
+to exit the bootloader, enter the konami code.
 
 ## installing
 
@@ -19,9 +19,12 @@ Make that your default bootloader, and the wonders of nyan cat will appear the n
 
 Alternatively, you can also just try it in a virtual machine (qemu) by running `make go` to open up qemu.
 
+If you do go the virtual machine route, you will need the proper firmware - Open Virtual Machine Firmware (OVMF).
+
+Check out http://www.tianocore.org/ovmf/ for more info and https://sourceforge.net/projects/edk2/files/OVMF/ to download.
+
 ## TODO
 
  - remove the bootloader and OVMF binaries from repo
  - add the stars
  - sound???
- - add some way to exit nyan.

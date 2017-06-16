@@ -96,3 +96,7 @@ run:
 	$(QEMU) -bios OVMF.fd -hda fat:hd -L bios/
 
 go: all run
+
+commit: clean
+	git add .
+	git commit
