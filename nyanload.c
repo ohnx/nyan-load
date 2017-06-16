@@ -53,10 +53,6 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
 	UINTN SizeOfInfo, sWidth, sHeight;
 	static EFI_INPUT_KEY keys[10]; //up  , up  , down, down, left,right, left,right, b, a
 	int keysPos = 0;
-	unsigned char *game = (void *)0x694201337;
-	int gameH, gameW;
-        int SCALE = 6;
-	int i, j; //k, l;
 
 	status = bs->LocateProtocol(&GraphicsOutputProtocolGUID, NULL, 
 		(void**)&graphicsProtocol);
@@ -77,63 +73,28 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
 	p.Red = 15;
 	p.Green = 77;
 	p.Blue = 143;
-
-	EFI_GRAPHICS_OUTPUT_BLT_PIXEL white;
-	white.Red = 255;
-	white.Green = 255;
-	white.Blue = 255;
-
-	// get screen info
 	graphicsProtocol->QueryMode(graphicsProtocol, graphicsProtocol->Mode->Mode, &SizeOfInfo, &info);
 	sWidth = info->HorizontalResolution;
-	sHeight = info->VerticalResolution;
+	sHeight = info->VerticalResolution;	
 	status = graphicsProtocol->Blt(graphicsProtocol, &p, EfiBltVideoFill, 0, 0, 0, 0, sWidth, sHeight, 0);
-
-	// game of life init code
-	gameH = sHeight / SCALE;
-	gameW = sWidth / SCALE;
-	for (i = 0; i < gameH; i++) {
-		for (j = 0; j < gameW; j++) {
-			game[i*gameW+j] = 0;
-		}
-	}
-	
 
 	/* disable efi watchdog timer */
 	bs->SetWatchdogTimer(0, 0, 0, NULL);
+
+	/* experimental disk loading */
+	
+	/* ------------ end -------- */
 	
 	/* experimental graphics draw */
 
         // nyan
+        int SCALE = 6;
+	int i, j;
 	int xtopleft = sWidth/2 - 35*(SCALE/2), ytopleft = sHeight/2 - 20*(SCALE/2);
 	int offset = 0;
-
-	// hardcoded rainbow colours
 	static EFI_GRAPHICS_OUTPUT_BLT_PIXEL rainbow[] = {{17,18,255,0x00},{11,168,255,0x00},{0,0xFF,0xFF,0x00},
 {12,0xFF,74,0x00},{255,174,15,0x00},{255,68,118,0x00}};
 
-	game[1*gameW + 0] = 1;
-	game[1*gameW + 1] = 1;
-	game[1*gameW + 2] = 1;
-	game[1*gameW + 3] = 1;
-	game[1*gameW + 4] = 1;
-	game[1*gameW + 5] = 1;
-
-while (1) {
-
-	// clear old
-	status = graphicsProtocol->Blt(graphicsProtocol, &p, EfiBltVideoFill, 0, 0, 0, 0, sWidth, sHeight, 0);
-
-	// paint conway's game of life 
-	for (i = 0; i < gameH; i++) {
-		for (j = 0; j < gameW; j++) {
-			if (game[i*gameW+j]) status = graphicsProtocol->Blt(graphicsProtocol,
-			&white, EfiBltVideoFill, 0, 0, j*SCALE, i*SCALE, SCALE, SCALE, 0);
-			else game[i*gameW+j+1] = 1;
-		}
-	}
-
-	// draw first bit of nyan
 	for (i = 10; i < 35; i++) { // x
 		for (j = 0; j < 20; j++) { // y
 			status = graphicsProtocol->Blt(graphicsProtocol,
@@ -141,9 +102,9 @@ while (1) {
 		}
 	}
 
+while (1) {
 	// clear old
-	// status = graphicsProtocol->Blt(graphicsProtocol, &p, EfiBltVideoFill, 0, 0, 0, ytopleft, xtopleft+10*SCALE, SCALE*20, 0);
-
+	status = graphicsProtocol->Blt(graphicsProtocol, &p, EfiBltVideoFill, 0, 0, 0, ytopleft, xtopleft+10*SCALE, SCALE*20, 0);
         // rainbow
 	for (i = 0; i < xtopleft+(7*SCALE); i++) { // x
 		for (j = 0; j < 6; j++) { // y
@@ -155,7 +116,6 @@ while (1) {
 		}
 	}
 
-	// paint butt or normal part of cat
 	if (offset) {
 		for (i = 0; i < 10; i++) { // x
 			for (j = 0; j < 20; j++) { // y
@@ -175,8 +135,6 @@ while (1) {
 			}
 		}
 	}
-
-	// read in keystroke
 	status = systemTable->ConIn->ReadKeyStroke(systemTable->ConIn, &keys[keysPos]);
 
 	if (status == EFI_SUCCESS) {
@@ -219,11 +177,11 @@ while (1) {
 		sad:
 		keysPos++;
 		keysPos = keysPos % 10;
+
 	}
-
-	bs->Stall(1000000);
+	bs->Stall(500000);
 }
-
+	
 	/* re-enable efi watchdog timer - because you're supposed to! :o */
 	bs->SetWatchdogTimer(1337, 0, 0, NULL);
 
