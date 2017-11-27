@@ -34,13 +34,9 @@
 */
 
 #include <efi.h>
-#include <efilib.h>
-
 #include <elf.h>
 
-EFI_STATUS _relocate (long ldbase, Elf32_Dyn *dyn,
-		      EFI_HANDLE image EFI_UNUSED,
-		      EFI_SYSTEM_TABLE *systab EFI_UNUSED)
+EFI_STATUS _relocate (long ldbase, Elf32_Dyn *dyn)
 {
 	long relsz = 0, relent = 0;
 	Elf32_Rel *rel = 0;
