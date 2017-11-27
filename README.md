@@ -21,10 +21,9 @@ Alternatively, you can also just try it in a virtual machine (qemu) by running `
 
 If you do go the virtual machine route, you will need the proper firmware - Open Virtual Machine Firmware (OVMF).
 
-Check out http://www.tianocore.org/ovmf/ for more info and https://sourceforge.net/projects/edk2/files/OVMF/ to download.
+Check out http://www.tianocore.org/ovmf/ for more info and (https://sourceforge.net/projects/edk2/files/OVMF/ or https://github.com/BlankOn/ovmf-blobs) to download.
 
 ## TODO
 
- - remove the bootloader and OVMF binaries from repo
  - add the stars
  - sound???
